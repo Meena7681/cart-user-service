@@ -28,9 +28,18 @@ const SignupInput_1 = require("../models/dto/SignupInput");
 const errors_1 = require("../utility/errors");
 const password_1 = require("../utility/password");
 const LoginInput_1 = require("../models/dto/LoginInput");
+const notification_1 = require("../utility/notification");
+const UpdateInput_1 = require("../models/dto/UpdateInput");
+const dateHelper_1 = require("../utility/dateHelper");
+const AddressInput_1 = require("../models/dto/AddressInput");
 let UserService = class UserService {
     constructor(repository) {
         this.repository = repository;
+    }
+    ResponseWithError(event) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return (0, response_1.ErrorResponse)(404, "requested method is not supported!");
+        });
     }
     // User Creation ,Validation && Login
     CreateUser(event) {
@@ -80,25 +89,110 @@ let UserService = class UserService {
             }
         });
     }
+    GetVerificationToken(event) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const token = event.headers.authorization;
+                const payload = yield (0, password_1.VerifyToken)(token);
+                if (!payload)
+                    return (0, response_1.ErrorResponse)(403, "authorization failed!");
+                const { code, expiry } = (0, notification_1.GenerateAccessCode)();
+                //save on DB to confirm verification
+                yield this.repository.updateVerificationCode(payload.user_id, code, expiry);
+                yield (0, notification_1.SendVerificationCode)(code, payload.phone);
+                return (0, response_1.SuccessResponse)({
+                    message: "Verification code is sent to your registered mobile number",
+                });
+            }
+            catch (error) {
+                return (0, response_1.ErrorResponse)(500, error);
+            }
+        });
+    }
     VerifyUser(event) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Verify User" });
+            try {
+                const token = event.headers.authorization;
+                const payload = yield (0, password_1.VerifyToken)(token);
+                if (!payload)
+                    return (0, response_1.ErrorResponse)(403, "authorization failed");
+                const input = (0, class_transformer_1.plainToClass)(UpdateInput_1.VerificationInput, event.body);
+                const error = yield (0, errors_1.AppValidationError)(input);
+                if (error)
+                    return (0, response_1.ErrorResponse)(404, error);
+                const { verification_code, expiry } = yield this.repository.findAccount(payload.email);
+                // find the user account
+                if (verification_code === parseInt(input.code)) {
+                    //check expiry
+                    const currentTime = new Date();
+                    const diff = (0, dateHelper_1.TimeDifference)(expiry, currentTime.toISOString(), "m");
+                    if (diff > 0) {
+                        yield this.repository.updateVerifyUser(payload.user_id);
+                    }
+                }
+                else {
+                    return (0, response_1.ErrorResponse)(403, "verification code is expired!");
+                }
+                // check the code is same or not and time should within expiry
+                return (0, response_1.SuccessResponse)({ message: "user verified!" });
+            }
+            catch (error) {
+                return (0, response_1.ErrorResponse)(500, error);
+            }
         });
     }
     // User profile
     CreateProfile(event) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Create Profile" });
+            try {
+                const token = event.headers.authorization;
+                const payload = yield (0, password_1.VerifyToken)(token);
+                if (!payload)
+                    return (0, response_1.ErrorResponse)(403, "Authorization Failed");
+                const input = (0, class_transformer_1.plainToClass)(AddressInput_1.ProfileInput, event.body);
+                const error = yield (0, errors_1.AppValidationError)(input);
+                if (error)
+                    return (0, response_1.ErrorResponse)(404, error);
+                const result = yield this.repository.createProfile(payload.user_id, input);
+                return (0, response_1.SuccessResponse)({ message: "profile created!" });
+            }
+            catch (error) {
+                return (0, response_1.ErrorResponse)(500, error);
+            }
         });
     }
     GetProfile(event) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Get Profile" });
+            try {
+                const token = event.headers.authorization;
+                const payload = yield (0, password_1.VerifyToken)(token);
+                if (!payload)
+                    return (0, response_1.ErrorResponse)(403, "authorization failed!");
+                const result = yield this.repository.getUserProfile(payload.user_id);
+                return (0, response_1.SuccessResponse)(result);
+            }
+            catch (error) {
+                return (0, response_1.ErrorResponse)(500, error);
+            }
         });
     }
     EditProfile(event) {
         return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Edit Profile" });
+            try {
+                const token = event.headers.authorization;
+                const payload = yield (0, password_1.VerifyToken)(token);
+                if (!payload)
+                    return (0, response_1.ErrorResponse)(404, "authorization failed!");
+                const input = (0, class_transformer_1.plainToClass)(AddressInput_1.ProfileInput, event.body);
+                const error = yield (0, errors_1.AppValidationError)(input);
+                if (error)
+                    return (0, response_1.ErrorResponse)(404, error);
+                yield this.repository.editProfile(payload.user_id, input);
+                return (0, response_1.SuccessResponse)({ message: "profile updated!" });
+            }
+            catch (error) {
+                return (0, response_1.ErrorResponse)(500, error);
+            }
         });
     }
     // Cart Section

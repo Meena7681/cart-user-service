@@ -27,12 +27,20 @@ exports.Login = (0, core_1.default)((event) => {
     // post
     return service.UserLogin(event);
 }).use((0, http_json_body_parser_1.default)());
-const Verify = (event) => __awaiter(void 0, void 0, void 0, function* () {
+exports.Verify = (0, core_1.default)((event) => {
     // post
-    return service.VerifyUser(event);
-});
-exports.Verify = Verify;
-const Profile = (event) => __awaiter(void 0, void 0, void 0, function* () {
+    const httpMethod = event.requestContext.http.method.toLowerCase();
+    if (httpMethod === "post") {
+        return service.VerifyUser(event);
+    }
+    else if (httpMethod === "get") {
+        return service.GetVerificationToken(event);
+    }
+    else {
+        return service.ResponseWithError(event);
+    }
+}).use((0, http_json_body_parser_1.default)());
+exports.Profile = (0, core_1.default)((event) => {
     // post put get
     const httpMethod = event.requestContext.http.method.toLowerCase();
     if (httpMethod === "post") {
@@ -45,11 +53,10 @@ const Profile = (event) => __awaiter(void 0, void 0, void 0, function* () {
         return service.GetProfile(event);
     }
     else {
-        return (0, response_1.ErrorResponse)(404, "Requested method is not supported!");
+        return service.ResponseWithError(event);
     }
-});
-exports.Profile = Profile;
-const Cart = (event) => __awaiter(void 0, void 0, void 0, function* () {
+}).use((0, http_json_body_parser_1.default)());
+exports.Cart = (0, core_1.default)((event) => {
     // post put get
     const httpMethod = event.requestContext.http.method.toLowerCase();
     if (httpMethod === "post") {
@@ -62,10 +69,9 @@ const Cart = (event) => __awaiter(void 0, void 0, void 0, function* () {
         return service.GetCart(event);
     }
     else {
-        return (0, response_1.ErrorResponse)(404, "Requested method is not supported!");
+        return service.ResponseWithError(event);
     }
-});
-exports.Cart = Cart;
+}).use((0, http_json_body_parser_1.default)());
 const Payment = (event) => __awaiter(void 0, void 0, void 0, function* () {
     // post put get
     const httpMethod = event.requestContext.http.method.toLowerCase();

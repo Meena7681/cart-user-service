@@ -28,7 +28,7 @@ functions:
   verify:
     handler: app/handler.Verify
     events:
-       - httpApi:
+      - httpApi:
           path: /verify
           method: get
       - httpApi:
