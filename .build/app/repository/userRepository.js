@@ -27,7 +27,7 @@ class UserRepository extends dbOperation_1.DBOperation {
     }
     findAccount(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const queryString = "SELECT user_id, email, password, phone, salt,verification_code,expiry FROM users WHERE email = $1";
+            const queryString = "SELECT user_id, email, password, phone, salt,verification_code,expiry,user_type FROM users WHERE email = $1";
             const values = [email];
             const result = yield this.executeQuery(queryString, values);
             if (result.rowCount < 1) {
@@ -90,7 +90,7 @@ class UserRepository extends dbOperation_1.DBOperation {
     }
     getUserProfile(user_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const profileQuery = "SELECT first_name,last_name,email,phone,user_type,verified FROM users WHERE user_id=$1";
+            const profileQuery = "SELECT first_name,last_name,email,phone,user_type,verified,stripe_id,payment_id FROM users WHERE user_id=$1";
             const profileValues = [user_id];
             const profileResult = yield this.executeQuery(profileQuery, profileValues);
             if (profileResult.rowCount < 1) {
@@ -109,7 +109,7 @@ class UserRepository extends dbOperation_1.DBOperation {
     editProfile(user_id, { firstName, lastName, userType, address: { addressLine1, addressLine2, city, postCode, country, id }, }) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.updateUser(user_id, firstName, lastName, userType);
-            const addressQuery = "UPDATE address SET address_line1=$1,address_line2=$2,city=$3,post_code=$4,country=$5 WHERE id=$6";
+            const addressQuery = "UPDATE address SET address_line1=$1, address_line2=$2, city=$3, post_code=$4, country=$5 WHERE id=$6";
             const addressValues = [
                 addressLine1,
                 addressLine2,
@@ -123,6 +123,17 @@ class UserRepository extends dbOperation_1.DBOperation {
                 throw new Error("error while updating profile!");
             }
             return true;
+        });
+    }
+    updateUserPayment({ userId, paymentId, customerId, }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const queryString = "UPDATE users SET stripe_id=$1, payment_id=$2 WHERE user_id=$3 RETURNING *";
+            const values = [customerId, paymentId, userId];
+            const result = yield this.executeQuery(queryString, values);
+            if (result.rowCount > 0) {
+                return result.rows[0];
+            }
+            throw new Error("error while updating user payment!");
         });
     }
 }

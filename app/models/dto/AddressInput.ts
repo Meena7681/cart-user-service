@@ -2,7 +2,7 @@ import { Length } from "class-validator";
 
 export class AddressInput {
   id: number;
-  
+
   @Length(3, 32)
   addressLine1: string;
   addressLine2: string;

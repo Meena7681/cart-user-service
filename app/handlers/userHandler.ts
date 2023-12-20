@@ -1,11 +1,15 @@
-import { container } from "tsyringe";
+// import { container } from "tsyringe";
 import { APIGatewayProxyEventV2 } from "aws-lambda";
+import { UserRepository } from "../repository/userRepository";
 import { UserService } from "../service/userService";
+// import { CartService } from "../service/cartService";
 import { ErrorResponse } from "../utility/response";
 import middy from "@middy/core";
 import bodyParser from "@middy/http-json-body-parser";
 
-const service = container.resolve(UserService);
+const service = new UserService(new UserRepository());
+// const service = container.resolve(UserService);
+// const cartService = container.resolve(CartService);
 
 export const Signup = middy((event: APIGatewayProxyEventV2) => {
   // post
@@ -14,59 +18,28 @@ export const Signup = middy((event: APIGatewayProxyEventV2) => {
 
 export const Login = middy((event: APIGatewayProxyEventV2) => {
   // post
+  // console.log(event);
   return service.UserLogin(event);
+}).use(bodyParser());
+
+export const GetVerificationToken = middy((event: APIGatewayProxyEventV2) => {
+  return service.GetVerificationToken(event);
 }).use(bodyParser());
 
 export const Verify = middy((event: APIGatewayProxyEventV2) => {
   // post
   const httpMethod = event.requestContext.http.method.toLowerCase();
-  if (httpMethod === "post") {
-    return service.VerifyUser(event);
-  } else if (httpMethod === "get") {
-    return service.GetVerificationToken(event);
-  } else {
-    return service.ResponseWithError(event);
-  }
+  return service.VerifyUser(event);
 }).use(bodyParser());
 
-export const Profile = middy((event: APIGatewayProxyEventV2) => {
-  // post put get
-  const httpMethod = event.requestContext.http.method.toLowerCase();
-  if (httpMethod === "post") {
-    return service.CreateProfile(event);
-  } else if (httpMethod === "put") {
-    return service.EditProfile(event);
-  } else if (httpMethod === "get") {
-    return service.GetProfile(event);
-  } else {
-    return service.ResponseWithError(event);
-  }
+export const CreateProfile = middy((event: APIGatewayProxyEventV2) => {
+  return service.CreateProfile(event);
 }).use(bodyParser());
 
-export const Cart = middy((event: APIGatewayProxyEventV2) => {
-  // post put get
-  const httpMethod = event.requestContext.http.method.toLowerCase();
-  if (httpMethod === "post") {
-    return service.CreateCart(event);
-  } else if (httpMethod === "put") {
-    return service.UpdateCart(event);
-  } else if (httpMethod === "get") {
-    return service.GetCart(event);
-  } else {
-    return service.ResponseWithError(event);
-  }
+export const EditProfile = middy((event: APIGatewayProxyEventV2) => {
+  return service.EditProfile(event);
 }).use(bodyParser());
 
-export const Payment = async (event: APIGatewayProxyEventV2) => {
-  // post put get
-  const httpMethod = event.requestContext.http.method.toLowerCase();
-  if (httpMethod === "post") {
-    return service.CreatePaymentMethod(event);
-  } else if (httpMethod === "put") {
-    return service.UpdatePaymentMethod(event);
-  } else if (httpMethod === "get") {
-    return service.GetPaymentMethod(event);
-  } else {
-    return ErrorResponse(404, "Requested method is not supported!");
-  }
-};
+export const GetProfile = middy((event: APIGatewayProxyEventV2) => {
+  return service.GetProfile(event);
+}).use(bodyParser());

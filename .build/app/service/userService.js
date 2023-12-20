@@ -59,7 +59,16 @@ let UserService = class UserService {
                     userType: "BUYER",
                     salt: salt,
                 });
-                return (0, response_1.SuccessResponse)(data);
+                const token = (0, password_1.GetToken)(data);
+                return (0, response_1.SuccessResponse)({
+                    token,
+                    email: data.email,
+                    firstName: data.first_name,
+                    lastName: data.last_name,
+                    phone: data.phone,
+                    userType: data.userType,
+                    _id: data.user_id,
+                });
             }
             catch (error) {
                 console.log(error);
@@ -81,7 +90,15 @@ let UserService = class UserService {
                 }
                 // check or validate password
                 const token = (0, password_1.GetToken)(data);
-                return (0, response_1.SuccessResponse)({ token });
+                return (0, response_1.SuccessResponse)({
+                    token,
+                    email: data.email,
+                    firstName: data.first_name,
+                    lastName: data.last_name,
+                    phone: data.phone,
+                    userType: data.userType,
+                    _id: data.user_id,
+                });
             }
             catch (error) {
                 console.log(error);
@@ -193,22 +210,6 @@ let UserService = class UserService {
             catch (error) {
                 return (0, response_1.ErrorResponse)(500, error);
             }
-        });
-    }
-    // Cart Section
-    CreateCart(event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Create Cart(" });
-        });
-    }
-    GetCart(event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Get Cart" });
-        });
-    }
-    UpdateCart(event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return (0, response_1.SuccessResponse)({ message: "response from Update Cart" });
         });
     }
     // Payment Section
