@@ -1,24 +1,17 @@
-// import { container } from "tsyringe";
 import { APIGatewayProxyEventV2 } from "aws-lambda";
 import { UserRepository } from "../repository/userRepository";
 import { UserService } from "../service/userService";
-// import { CartService } from "../service/cartService";
 import { ErrorResponse } from "../utility/response";
 import middy from "@middy/core";
 import bodyParser from "@middy/http-json-body-parser";
 
 const service = new UserService(new UserRepository());
-// const service = container.resolve(UserService);
-// const cartService = container.resolve(CartService);
-
 export const Signup = middy((event: APIGatewayProxyEventV2) => {
   // post
   return service.CreateUser(event);
 }).use(bodyParser());
 
 export const Login = middy((event: APIGatewayProxyEventV2) => {
-  // post
-  // console.log(event);
   return service.UserLogin(event);
 }).use(bodyParser());
 
@@ -27,7 +20,6 @@ export const GetVerificationToken = middy((event: APIGatewayProxyEventV2) => {
 }).use(bodyParser());
 
 export const Verify = middy((event: APIGatewayProxyEventV2) => {
-  // post
   const httpMethod = event.requestContext.http.method.toLowerCase();
   return service.VerifyUser(event);
 }).use(bodyParser());
