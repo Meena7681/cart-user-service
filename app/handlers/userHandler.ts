@@ -7,7 +7,6 @@ import bodyParser from "@middy/http-json-body-parser";
 
 const service = new UserService(new UserRepository());
 export const Signup = middy((event: APIGatewayProxyEventV2) => {
-  // post
   return service.CreateUser(event);
 }).use(bodyParser());
 
